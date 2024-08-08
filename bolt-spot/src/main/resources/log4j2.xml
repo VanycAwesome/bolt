@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!-- 配置文件附加器 -->
+        <File name="File" fileName="/Users/z9zr-vanyc/Source/java/bolt/logs/app.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %t %-5p %c{1}:%L - %m%n"/>
+        </File>
+
+        <!-- 配置异步附加器，引用文件附加器 -->
+        <Async name="Async">
+            <AppenderRef ref="File"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <Root level="warn">
+            <AppenderRef ref="Async"/>
+        </Root>
+    </Loggers>
+</Configuration>

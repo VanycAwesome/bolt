@@ -23,7 +23,7 @@ import static com.cmex.bolt.spot.util.SpotServiceUtil.*;
 public class TestMatch {
     private static SpotServiceImpl service = new SpotServiceImpl();
 
-    private static int TIMES = 50000;
+    private static int TIMES = 20_000;
 
     @BeforeAll
     public static void init() {
@@ -31,39 +31,55 @@ public class TestMatch {
         increase(service, 2, 2, String.valueOf(TIMES));
         increase(service, 3, 1, String.valueOf(TIMES));
         increase(service, 4, 3, String.valueOf(TIMES));
+        increase(service, 5, 1, String.valueOf(TIMES));
+        increase(service, 6, 4, String.valueOf(TIMES));
     }
 
     @Test
     public void testOrder() throws InterruptedException {
         ExecutorService executor = Executors.newFixedThreadPool(8);
         Stopwatch stopwatch = Stopwatch.createStarted();
-        CountDownLatch latch = new CountDownLatch(4);
+        CountDownLatch latch = new CountDownLatch(6);
         executor.submit(() -> {
             for (int i = 1; i <= TIMES; i++) {
                 placeOrder(1, 1, PlaceOrderRequest.Type.LIMIT, PlaceOrderRequest.Side.BID, "1", "1");
             }
-            System.out.println("bid send done");
+            System.out.println("btcusdt bid send done");
             latch.countDown();
         });
         executor.submit(() -> {
             for (int i = 1; i <= TIMES; i++) {
                 placeOrder(1, 2, PlaceOrderRequest.Type.LIMIT, PlaceOrderRequest.Side.ASK, "1", "1");
             }
-            System.out.println("ask send done");
+            System.out.println("btcusdt ask send done");
             latch.countDown();
         });
         executor.submit(() -> {
             for (int i = 1; i <= TIMES; i++) {
                 placeOrder(2, 3, PlaceOrderRequest.Type.LIMIT, PlaceOrderRequest.Side.BID, "1", "1");
             }
-            System.out.println("bid send done");
+            System.out.println("shibusdt bid send done");
             latch.countDown();
         });
         executor.submit(() -> {
             for (int i = 1; i <= TIMES; i++) {
                 placeOrder(2, 4, PlaceOrderRequest.Type.LIMIT, PlaceOrderRequest.Side.ASK, "1", "1");
             }
-            System.out.println("ask send done");
+            System.out.println("shibusdt ask send done");
+            latch.countDown();
+        });
+        executor.submit(() -> {
+            for (int i = 1; i <= TIMES; i++) {
+                placeOrder(3, 5, PlaceOrderRequest.Type.LIMIT, PlaceOrderRequest.Side.BID, "1", "1");
+            }
+            System.out.println("ethusdt bid send done");
+            latch.countDown();
+        });
+        executor.submit(() -> {
+            for (int i = 1; i <= TIMES; i++) {
+                placeOrder(3, 6, PlaceOrderRequest.Type.LIMIT, PlaceOrderRequest.Side.ASK, "1", "1");
+            }
+            System.out.println("ethusdt ask send done");
             latch.countDown();
         });
         latch.await();
@@ -72,13 +88,15 @@ public class TestMatch {
             AtomicReference<Boolean> account1Eq = new AtomicReference<>(false);
             AtomicReference<Boolean> account2Eq = new AtomicReference<>(false);
             getAccount(service, 1, new FakeStreamObserver<>((response) -> {
-                if (BigDecimalUtil.eq(response.getDataMap().get(1).getAvailable(),"0")
-                        && BigDecimalUtil.eq(response.getDataMap().get(2).getAvailable(), String.valueOf(TIMES))) {
+                System.out.printf("account 1 balance is %s\n", response.getDataMap());
+                if (BigDecimalUtil.eq(response.getDataMap().get(1).getAvailable(), "0")
+                        && (response.getDataMap().get(2) != null && BigDecimalUtil.eq(response.getDataMap().get(2).getAvailable(), String.valueOf(TIMES)))) {
                     account1Eq.set(true);
                 }
             }));
             getAccount(service, 2, new FakeStreamObserver<>((response) -> {
-                if (BigDecimalUtil.eq(response.getDataMap().get(1).getAvailable(),String.valueOf(TIMES))
+                System.out.printf("account 2 balance is %s\n", response.getDataMap());
+                if ((response.getDataMap().get(1) != null && BigDecimalUtil.eq(response.getDataMap().get(1).getAvailable(), String.valueOf(TIMES)))
                         && BigDecimalUtil.eq(response.getDataMap().get(2).getAvailable(), "0")) {
                     account2Eq.set(true);
                 }
@@ -87,9 +105,12 @@ public class TestMatch {
                 break;
             }
             TimeUnit.MILLISECONDS.sleep(500);
+            System.out.println("balance not equal");
+            getDepth(service, 1);
         }
         System.out.println("get account elapsed : " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
         getDepth(service, 1);
+        getDepth(service, 2);
         System.out.println("get depth elapsed : " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
         executor.shutdown();
     }

@@ -8,11 +8,15 @@ import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.LifecycleAware;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 @Getter
 public class AccountDispatcher implements EventHandler<Message>, LifecycleAware {
+    private static final Logger LOGGER = LogManager.getLogger(AccountDispatcher.class);
+
     private final int amount;
 
     private final int partition;
@@ -33,6 +37,7 @@ public class AccountDispatcher implements EventHandler<Message>, LifecycleAware 
             case INCREASE:
                 Increase increase = message.payload.asIncrease;
                 if (partition == increase.accountId.get() % 10) {
+                    LOGGER.info("account {} on message {} increase", increase.accountId.get(), message.id.get());
                     accountService.on(message.id.get(), increase);
                 }
                 break;
@@ -45,6 +50,7 @@ public class AccountDispatcher implements EventHandler<Message>, LifecycleAware 
             case CLEARED:
                 Cleared cleared = message.payload.asCleared;
                 if (partition == cleared.accountId.get() % 10) {
+                    LOGGER.info("account {} on message {} cleared", cleared.accountId.get(), message.id.get());
                     accountService.on(message.id.get(), cleared);
                 }
                 break;
@@ -57,6 +63,7 @@ public class AccountDispatcher implements EventHandler<Message>, LifecycleAware 
             case PLACE_ORDER:
                 PlaceOrder placeOrder = message.payload.asPlaceOrder;
                 if (partition == placeOrder.accountId.get() % 10) {
+                    LOGGER.info("account {} on message {} placeOrder", placeOrder.accountId.get(), message.id.get());
                     accountService.on(message.id.get(), placeOrder);
                 }
                 break;

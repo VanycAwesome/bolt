@@ -8,6 +8,7 @@ target/
 *.iws
 *.iml
 *.ipr
+*logs*
 
 ### Mac OS ###
 .DS_Store

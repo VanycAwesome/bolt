@@ -7,8 +7,12 @@ import com.cmex.bolt.spot.util.OrderIdGenerator;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.LifecycleAware;
 import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MatchDispatcher implements EventHandler<Message>, LifecycleAware {
+
+    private static final Logger LOGGER = LogManager.getLogger(MatchDispatcher.class);
 
     private final int amount;
     @Getter
@@ -24,15 +28,16 @@ public class MatchDispatcher implements EventHandler<Message>, LifecycleAware {
 
     public void onEvent(Message message, long sequence, boolean endOfBatch) {
         EventType type = message.type.get();
-
         switch (type) {
             case CANCEL_ORDER:
                 if (partition == OrderIdGenerator.getSymbolId(message.payload.asCancelOrder.orderId.get()) % amount) {
+                    LOGGER.info("message {} canceled", message.id);
                     matchService.on(message.id.get(), message.payload.asCancelOrder);
                 }
                 break;
             case PLACE_ORDER:
                 if (partition == message.payload.asPlaceOrder.symbolId.get() % amount) {
+                    LOGGER.info("symbolId {} on message {}", message.payload.asPlaceOrder.symbolId.get(), message.id);
                     matchService.on(message.id.get(), message.payload.asPlaceOrder);
                 }
                 break;

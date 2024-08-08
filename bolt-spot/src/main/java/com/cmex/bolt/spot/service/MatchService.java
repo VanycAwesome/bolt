@@ -4,17 +4,21 @@ package com.cmex.bolt.spot.service;
 import com.cmex.bolt.spot.api.*;
 import com.cmex.bolt.spot.domain.*;
 import com.cmex.bolt.spot.dto.DepthDto;
+import com.cmex.bolt.spot.handler.AccountDispatcher;
 import com.cmex.bolt.spot.repository.impl.OrderBookRepository;
 import com.cmex.bolt.spot.repository.impl.SymbolRepository;
 import com.cmex.bolt.spot.util.OrderIdGenerator;
 import com.cmex.bolt.spot.util.Result;
 import com.lmax.disruptor.RingBuffer;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Optional;
 
 public class MatchService {
+    private static final Logger LOGGER = LogManager.getLogger(MatchService.class);
 
     @Setter
     private RingBuffer<Message> sequencerRingBuffer;

@@ -1,10 +1,11 @@
 package com.cmex.bolt.spot.grpc;
 
 import com.cmex.bolt.spot.api.*;
-import com.cmex.bolt.spot.handler.*;
 import com.cmex.bolt.spot.domain.Balance;
 import com.cmex.bolt.spot.domain.Symbol;
 import com.cmex.bolt.spot.dto.DepthDto;
+import com.cmex.bolt.spot.handler.AccountDispatcher;
+import com.cmex.bolt.spot.handler.MatchDispatcher;
 import com.cmex.bolt.spot.service.AccountService;
 import com.cmex.bolt.spot.service.MatchService;
 import com.lmax.disruptor.EventHandler;
@@ -15,6 +16,8 @@ import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.DaemonThreadFactory;
 import io.grpc.stub.StreamObserver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,13 +43,13 @@ public class SpotServiceImpl extends SpotServiceImplBase {
     public SpotServiceImpl() {
         observers = new ConcurrentHashMap<>();
         Disruptor<Message> accountDisruptor =
-                new Disruptor<>(Message.FACTORY, 1024 * 256, DaemonThreadFactory.INSTANCE,
+                new Disruptor<>(Message.FACTORY, 1024 * 1024 * 2, DaemonThreadFactory.INSTANCE,
                         ProducerType.MULTI, new LiteBlockingWaitStrategy());
         Disruptor<Message> matchDisruptor =
-                new Disruptor<>(Message.FACTORY, 1024 * 256, DaemonThreadFactory.INSTANCE,
+                new Disruptor<>(Message.FACTORY, 1024 * 1024 * 2, DaemonThreadFactory.INSTANCE,
                         ProducerType.MULTI, new LiteBlockingWaitStrategy());
         Disruptor<Message> responseDisruptor =
-                new Disruptor<>(Message.FACTORY, 1024 * 256, DaemonThreadFactory.INSTANCE,
+                new Disruptor<>(Message.FACTORY, 1024 * 1024 * 2, DaemonThreadFactory.INSTANCE,
                         ProducerType.MULTI, new LiteBlockingWaitStrategy());
         List<AccountDispatcher> accountDispatchers = createAccountDispatchers();
         List<MatchDispatcher> matchDispatchers = createMatchDispatchers();
