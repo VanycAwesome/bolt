@@ -23,7 +23,7 @@ import static com.cmex.bolt.spot.util.SpotServiceUtil.*;
 public class TestMatch {
     private static SpotServiceImpl service = new SpotServiceImpl();
 
-    private static int TIMES = 20_000;
+    private static int TIMES = 100_000;
 
     @BeforeAll
     public static void init() {
